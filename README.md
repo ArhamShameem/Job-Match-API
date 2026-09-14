@@ -1,163 +1,142 @@
 # Job Match API
 
-A backend service that recommends and ranks jobs for candidates based on skills, experience, location, and salary expectations.
+A TypeScript backend API that creates candidate profiles, creates job postings, and returns ranked job recommendations based on skills, experience, location, and salary fit.
 
-Built with **Node.js, Express.js, TypeScript, PostgreSQL, Prisma, Zod, and Vitest**.
-
----
+Built with Node.js, Express.js, Prisma, PostgreSQL, Zod, Vitest, and Docker.
 
 ## Features
 
-* Create candidates
-* Create jobs
-* Generate ranked job recommendations for a candidate
-* Recommendation score from **0–100**
-* Score breakdown by:
-
-  * Skills
-  * Experience
-  * Location
-  * Salary
-* Must-have skill hard exclusion
-* Nice-to-have skill scoring
-* Experience-based penalty
-* Location matching with remote support
-* Salary overlap scoring
-* Configurable recommendation limit
-* Input validation using Zod
-* Unit and API tests using Vitest
-* Dockerized API and PostgreSQL
-
----
+- Create candidate profiles
+- Create job postings
+- Get ranked job recommendations for a candidate
+- Return an overall match score from 0 to 100
+- Return a score breakdown for skills, experience, location, and salary
+- Hard-filter jobs when must-have skills are missing
+- Boost scores for nice-to-have skills without filtering candidates out
+- Penalize lower experience without excluding the candidate
+- Prefer exact location matches over remote matches and mismatches
+- Score salary fit based on the candidate expectation and job salary range
+- Support a `limit` query parameter for top-N recommendations
+- Validate request bodies with Zod
+- Test scoring and API behavior with Vitest
+- Run locally or with Docker Compose
 
 ## Tech Stack
 
-* **Runtime:** Node.js
-* **Language:** TypeScript
-* **Framework:** Express.js
-* **Database:** PostgreSQL
-* **ORM:** Prisma
-* **Validation:** Zod
-* **Testing:** Vitest
-* **Containerization:** Docker & Docker Compose
-
----
+- Runtime: Node.js
+- Language: TypeScript
+- Framework: Express.js
+- Database: PostgreSQL
+- ORM: Prisma
+- Validation: Zod
+- Testing: Vitest
+- Containerization: Docker and Docker Compose
 
 ## Project Structure
 
 ```text
-backend/
-├── prisma/
-│   ├── migrations/
-│   └── schema.prisma
-│
-├── src/
-│   ├── generated/
-│   ├── lib/
-│   │   └── prisma.ts
-│   ├── route/
-│   │   ├── candidate.route.ts
-│   │   ├── job.route.ts
-│   │   └── recommendation.route.ts
-│   ├── schemas/
-│   │   ├── candidate.schema.ts
-│   │   └── job.schema.ts
-│   ├── scoring/
-│   │   └── recommendation.scorer.ts
-│   ├── app.ts
-│   ├── app.test.ts
-│   └── server.ts
-│
-├── .env
-├── .env.example
-├── .dockerignore
-├── Dockerfile
-├── docker-compose.yml
-├── package.json
-└── tsconfig.json
+.
+|-- README.md
+`-- backend/
+    |-- prisma/
+    |   |-- migrations/
+    |   `-- schema.prisma
+    |-- scoring/
+    |   |-- recommendation.scorer.ts
+    |   `-- recommendation.scorer.test.ts
+    |-- src/
+    |   |-- app.ts
+    |   |-- app.test.ts
+    |   |-- generated/
+    |   |-- lib/
+    |   |   `-- prisma.ts
+    |   |-- route/
+    |   |   |-- candidate.route.ts
+    |   |   |-- job.route.ts
+    |   |   `-- recommendation.route.ts
+    |   |-- schemas/
+    |   |   |-- candidate.schema.ts
+    |   |   `-- job.schema.ts
+    |   `-- server.ts
+    |-- .dockerignore
+    |-- .env.example
+    |-- .gitignore
+    |-- Dockerfile
+    |-- docker-compose.yml
+    |-- package.json
+    |-- package-lock.json
+    `-- tsconfig.json
 ```
 
----
+## Getting Started
 
-# Getting Started
+### Prerequisites
 
-## Prerequisites
+- Node.js 22+
+- npm
+- Docker Desktop, if running PostgreSQL or the API with Docker
 
-Make sure you have:
+### Run Locally
 
-* Node.js 22+
-* npm
-* Docker Desktop
-
----
-
-## Running Locally
-
-### 1. Install dependencies
+From the repository root:
 
 ```bash
+cd backend
 npm install
 ```
 
-### 2. Configure environment variables
+Create a `.env` file from the example:
 
-Create a `.env` file:
+```bash
+cp .env.example .env
+```
+
+Use a local PostgreSQL connection string:
 
 ```env
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/job_match"
 ```
 
-### 3. Start PostgreSQL
-
-If using Docker:
+Start PostgreSQL with Docker:
 
 ```bash
 docker compose up -d postgres
 ```
 
-### 4. Run Prisma migrations
+Run Prisma migrations:
 
 ```bash
 npx prisma migrate dev
 ```
 
-### 5. Start the API
+Start the API:
 
 ```bash
 npm run dev
 ```
 
-The API will be available at:
+The API runs at:
 
 ```text
 http://localhost:5000
 ```
 
----
+## Run With Docker
 
-# Running with Docker
-
-The project includes Docker support for both the API and PostgreSQL.
-
-### Build the API image
+From `backend/`:
 
 ```bash
 docker compose build backend
-```
-
-### Start all services
-
-```bash
 docker compose up -d
 ```
 
-### Run database migrations
+Run database migrations inside the API container:
 
 ```bash
 docker compose exec backend npx prisma migrate deploy
 ```
 
-### Check running containers
+Check containers:
 
 ```bash
 docker compose ps
@@ -170,68 +149,37 @@ job-match-api
 job-match-postgres
 ```
 
-The API will be available at:
+## API Endpoints
 
-```text
-http://localhost:5000
+### Health Check
+
+```http
+GET /health
 ```
 
-Inside Docker, the API connects to PostgreSQL using:
+### Create Candidate
 
-```text
-postgres:5432
+```http
+POST /candidates
 ```
-
-rather than `localhost`.
-
----
-
-# API Endpoints
-
-## 1. Create Candidate
-
-### `POST /candidates`
 
 Request:
 
 ```json
 {
   "name": "Arham",
-  "skills": [
-    "React",
-    "Node.js",
-    "TypeScript",
-    "PostgreSQL"
-  ],
+  "skills": ["React", "Node.js", "TypeScript", "PostgreSQL"],
   "yearsOfExperience": 2,
   "location": "Gurugram",
   "expectedSalary": 1000000
 }
 ```
 
-Example response:
+### Create Job
 
-```json
-{
-  "id": "candidate-id",
-  "name": "Arham",
-  "skills": [
-    "React",
-    "Node.js",
-    "TypeScript",
-    "PostgreSQL"
-  ],
-  "yearsOfExperience": 2,
-  "location": "Gurugram",
-  "expectedSalary": 1000000
-}
+```http
+POST /jobs
 ```
-
----
-
-## 2. Create Job
-
-### `POST /jobs`
 
 Request:
 
@@ -260,27 +208,19 @@ Request:
 }
 ```
 
----
+### Get Candidate Recommendations
 
-## 3. Get Job Recommendations
-
-### `GET /candidates/:candidateId/recommendations`
-
-Example:
-
-```text
-GET /candidates/<candidateId>/recommendations
+```http
+GET /candidates/:candidateId/recommendations
 ```
 
-Optional limit:
+Optional top-N limit:
 
-```text
-GET /candidates/<candidateId>/recommendations?limit=5
+```http
+GET /candidates/:candidateId/recommendations?limit=5
 ```
 
-The response contains jobs ranked by their recommendation score.
-
-Example:
+Response:
 
 ```json
 {
@@ -301,191 +241,198 @@ Example:
 }
 ```
 
----
+Invalid, zero, negative, or decimal `limit` values safely fall back to the default limit. Very large valid limits are capped at 50.
 
-# Recommendation Scoring
+## Data Model
 
-The recommendation score is normalized to a maximum of **100 points**.
+### Candidate
 
-| Factor     | Maximum Score |
-| ---------- | ------------: |
-| Skills     |            50 |
-| Experience |            20 |
-| Location   |            15 |
-| Salary     |            15 |
-| **Total**  |       **100** |
+- `id`
+- `name`
+- `skills`
+- `yearsOfExperience`
+- `location`
+- `expectedSalary`
+- `createdAt`
 
-## 1. Skills — 50 points
+### Job
 
-Skills have the highest weight because they are the strongest indicator of whether a candidate can perform the job.
+- `id`
+- `title`
+- `requiredSkills`
+- `minYearsExperience`
+- `location`
+- `salaryMin`
+- `salaryMax`
+- `remoteAllowed`
+- `createdAt`
 
-### Must-have skills — 40 points
+The assignment describes salary as `salaryRange`. This implementation stores it as `salaryMin` and `salaryMax`, which keeps validation and scoring straightforward while representing the same concept.
 
-All must-have skills must be present.
+## Recommendation Scoring
 
-If **any must-have skill is missing**, the job is completely excluded from recommendations.
+The total score is capped at 100 points.
 
-Example:
+| Factor     | Max points |
+| ---------- | ---------: |
+| Skills     |         50 |
+| Experience |         20 |
+| Location   |         15 |
+| Salary     |         15 |
+| Total      |        100 |
 
-```text
-Job requires:
-- React → must-have
-- Node.js → must-have
+Skills are weighted highest because matching the required technical abilities is the strongest signal for whether a candidate can perform the job. Experience is important but flexible, so it gets a meaningful score without becoming a hard filter. Location and salary are important fit factors, but they should not overpower a strong skills match.
 
-Candidate:
-- React
-- TypeScript
-```
+### Skills: 50 Points
 
-The job is excluded because Node.js is missing.
-
-### Nice-to-have skills — 10 points
-
-Nice-to-have skills do not exclude a candidate.
-
-The 10 points are awarded proportionally based on how many nice-to-have skills match.
-
-Example:
-
-```text
-3 nice-to-have skills
-2 matched
-
-Score = 2 / 3 × 10
-     ≈ 6.67
-```
-
-If a job has no nice-to-have skills, the full 10 points are awarded after satisfying the must-have requirements.
-
----
-
-## 2. Experience — 20 points
-
-Candidates meeting or exceeding the minimum experience receive the full 20 points.
-
-Candidates below the requirement are **penalized proportionally rather than excluded**.
-
-Example:
+Must-have skills are a hard filter. If a candidate is missing any must-have skill, the scorer returns `null` and the job is excluded from recommendations.
 
 ```text
-Required: 3 years
-Candidate: 2 years
-
-Score = 2 / 3 × 20
-     ≈ 13.33
+Missing must-have skill -> job excluded
 ```
 
-### Why penalize instead of exclude?
-
-Experience is often a flexible requirement.
-
-A candidate with slightly less experience may still be a strong match because of their skills, location, salary expectations, or other qualifications.
-
-Therefore, experience reduces the ranking score instead of acting as a hard filter.
-
----
-
-## 3. Location — 15 points
-
-Location is scored using the following priority:
-
-| Condition                               | Score |
-| --------------------------------------- | ----: |
-| Exact location match                    |    15 |
-| Different location + remote allowed     |    10 |
-| Different location + remote not allowed |     0 |
-
-Example:
+If all must-have skills are present, the candidate receives the base must-have score:
 
 ```text
-Candidate: Gurugram
-Job: Gurugram
-
-Score = 15
+skillsScore starts at 40
 ```
 
-If the candidate is in another location but the job supports remote work:
+Nice-to-have skills add up to 10 more points:
 
 ```text
-Score = 10
+skillsScore = 40 + (matchedNiceToHave / totalNiceToHave) * 10
 ```
 
----
+If a job has no nice-to-have skills, the candidate gets the full 10-point nice-to-have portion after passing the must-have filter.
 
-## 4. Salary — 15 points
+### Experience: 20 Points
 
-Salary is based on how well the job's salary range aligns with the candidate's expected salary.
-
-### Job maximum below candidate expectation
-
-If:
+Candidates who meet or exceed `minYearsExperience` receive full points:
 
 ```text
-job.salaryMax < candidate.expectedSalary
+experienceScore = 20
 ```
 
-the salary score is:
+Candidates below the minimum are penalized proportionally:
 
 ```text
-0
+experienceScore = (candidate.yearsOfExperience / job.minYearsExperience) * 20
 ```
 
-This indicates that the job cannot meet the candidate's expectation.
+I chose penalize instead of exclude because experience requirements are often flexible. A candidate with slightly less experience can still be a strong match if they satisfy the must-have skills and fit the location or salary expectations well.
 
-### Job minimum meets or exceeds expectation
+### Location: 15 Points
 
-If:
+Location is scored by priority:
+
+| Condition                                 | Points |
+| ----------------------------------------- | -----: |
+| Exact location match                      |     15 |
+| Different location and remote allowed     |     10 |
+| Different location and remote not allowed |      0 |
+
+Exact location is best because it requires no relocation or remote compromise. Remote support is still useful, so it receives partial credit.
+
+### Salary: 15 Points
+
+Salary score compares the candidate's `expectedSalary` with the job's salary range.
+
+If the job maximum is below the candidate expectation:
 
 ```text
-job.salaryMin >= candidate.expectedSalary
+salaryScore = 0
 ```
 
-the candidate receives the full:
+If the job minimum meets or exceeds the candidate expectation:
 
 ```text
-15 points
+salaryScore = 15
 ```
 
-### Partial overlap
-
-If the candidate's expectation falls inside the job's salary range, the score is proportional to the remaining salary range above the candidate's expectation.
-
-This rewards jobs that provide reasonable salary overlap while giving higher scores to jobs that comfortably exceed expectations.
-
----
-
-# Hard Exclusion vs Ranking
-
-The recommendation system distinguishes between **hard requirements** and **ranking factors**.
-
-### Hard exclusion
-
-Only missing must-have skills cause a job to be excluded.
+If the candidate expectation falls inside the job range:
 
 ```text
-Missing must-have skill
-        ↓
-Job excluded
+salaryScore = ((job.salaryMax - candidate.expectedSalary) / (job.salaryMax - job.salaryMin)) * 15
 ```
 
-### Ranking penalties
+This gives partial credit when the job can meet the expectation, and higher credit when more of the salary range sits above the candidate's expectation.
 
-The following affect ranking but do not necessarily exclude the job:
+## Validation
 
-* Lower experience
-* Location mismatch
-* Salary mismatch
+Request bodies are validated with Zod before Prisma is called.
 
-This allows the system to return useful alternatives instead of aggressively filtering candidates.
+Candidate validation includes:
 
----
+- Required `name`
+- At least one skill
+- No empty skill strings
+- Non-negative `yearsOfExperience`
+- Required `location`
+- Positive `expectedSalary`
 
-# Validation
+Job validation includes:
 
-Request bodies are validated using **Zod**.
+- Required `title`
+- At least one required skill
+- Skill type must be `must-have` or `nice-to-have`
+- Non-negative `minYearsExperience`
+- Required `location`
+- Positive `salaryMin`
+- Positive `salaryMax`
+- `salaryMax` must be greater than or equal to `salaryMin`
+- `remoteAllowed` must be a boolean
 
-Validation covers:
+## Tests
 
-* Required fields
-* Non-empty strings
-* Skills array
+Run tests from `backend/`:
+
+```bash
+npm run test:run
+```
+
+Run TypeScript checking:
+
+```bash
+npx tsc --noEmit
+```
+
+The test suite covers:
+
+- Scoring logic
+- Missing must-have skill exclusion
+- Nice-to-have skill boost
+- Experience penalties
+- Location score cases
+- Salary score cases and edge cases
+- Score boundary checks
+- Candidate API validation
+- Job API validation
+- Recommendation API ranking, missing candidate handling, and limit behavior
+
+## Assumptions
+
+- Skill matching is case-insensitive but otherwise exact.
+- Candidate skills and job skills are stored as JSON arrays in PostgreSQL.
+- Salaries are numeric values in the same currency.
+- `salaryMin` and `salaryMax` represent the assignment's salary range.
+- The recommendation endpoint scores all jobs in memory, which is acceptable for a small assignment project.
+- Authentication, authorization, frontend UI, and machine learning are intentionally out of scope.
+
+## What I Would Do Differently With More Time
+
+- Move scoring weights into a configuration object or environment-backed config.
+- Add pagination or database-side filtering for larger job datasets.
+- Add `GET /jobs/:id/recommendations` for reverse matching candidates to a job.
+- Add integration tests against a real PostgreSQL test database.
+- Normalize skills into separate tables if the project needed search, analytics, or advanced filtering.
+
+## AI Tool Usage
+
+AI assistance was used to review the assignment requirements, identify test gaps, add focused tests, and improve documentation structure. I reviewed and kept the implementation rule-based and transparent, and I overrode broad restructuring suggestions in favor of small route files because the assignment is compact and does not require a controller/service split.
+
+## Submission Notes
+
+- Core requirements are implemented.
+- Docker support is included as a bonus.
+- The reverse recommendation endpoint and configurable scoring weights are not implemented because they are bonus items.
+- Local secrets are kept out of git with `.gitignore`; use `.env.example` as the template for local configuration.
