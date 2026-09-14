@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Candidate {
+  id                String   @id @default(uuid())
+  name              String
+  skills            Json
+  yearsOfExperience Float
+  location          String
+  expectedSalary    Float
+  createdAt         DateTime @default(now())
+}
+
+model Job {
+  id                 String   @id @default(uuid())
+  title              String
+  requiredSkills     Json
+  minYearsExperience Float
+  location           String
+  salaryMin          Float
+  salaryMax          Float
+  remoteAllowed      Boolean
+  createdAt          DateTime @default(now())
+}
