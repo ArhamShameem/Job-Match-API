@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: job-match-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: job_match
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: job-match-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/job_match
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
